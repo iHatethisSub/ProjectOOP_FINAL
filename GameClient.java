@@ -85,7 +85,7 @@ public class GameClient {
                 break;
 
             case "WRONG":
-                frame.showMessage("ตอบผิด ลองใหม่อีกครั้ง");
+                frame.showMessage(value + " ตอบผิด ลองใหม่อีกครั้ง");
                 break;
 
             case "CORRECT":

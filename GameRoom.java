@@ -10,10 +10,14 @@ public class GameRoom {
     private String hint;
 
     private int round = 0;
-    private int totalRounds = 5;
+    private int totalRounds = 14;
 
     private boolean gameStarted = false;
     private boolean roundEnded = false;
+
+    private WordBank wordBank = new WordBank();
+
+    
 
     public GameRoom() { }
 
@@ -84,6 +88,11 @@ public class GameRoom {
             return;
         }
 
+        if (clients.isEmpty() || clients.get(0) != client) {
+            client.send("ERROR#You cannot start the game");
+            return;
+        }
+
         // เพิ่มใหม่: ให้เฉพาะหัวหน้าห้อง (คนแรกในห้อง) เป็นคนกดเริ่ม
         if (clients.size() == 0 || clients.get(0) != client) {
             client.send("ERROR#Only the host can start the game");
@@ -120,7 +129,7 @@ public class GameRoom {
         round++;
         roundEnded = false;
 
-        String[] selectedWord = new WordBank().getRandomWord();
+        String[] selectedWord = wordBank.getRandomWord();
 
         word = selectedWord[0];
         hint = selectedWord[1];
@@ -149,7 +158,7 @@ public class GameRoom {
                 broadcast("ANSWER#" + word);
                 broadcast("SCORE#" + client.getPlayer().getName() + "#" + client.getPlayer().getScore());
             } else {
-                client.send("WRONG");
+                broadcast("WRONG#" + client.getPlayer().getName());
                 return;
             }
         }

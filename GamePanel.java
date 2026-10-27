@@ -93,7 +93,7 @@ public class GamePanel extends JPanel {
         message = text;
         repaint();
     }
-
+    
     public void addMessage(String text) {
         message = message + text;
         repaint();

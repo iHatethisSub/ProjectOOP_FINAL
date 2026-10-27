@@ -3,7 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class GameServer {
-    private static final int PORT = 5000;
+    private static final int PORT = 50101;
 
     public static void main(String[] args) {
         GameRoom room = new GameRoom();

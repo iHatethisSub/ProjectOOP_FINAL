@@ -98,7 +98,7 @@ public class GameFrame extends JFrame implements ActionListener {
 
     boolean showJoinDialog() {
         JTextField ipField = new JTextField("localhost");
-        JTextField portField = new JTextField("5000");
+        JTextField portField = new JTextField("50101");
         JTextField nameField = new JTextField();
 
         // String = ป้ายข้อความ, JTextField = ช่องกรอก

@@ -1,4 +1,6 @@
-import java.util.Random;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class WordBank {
     private String[][] words = {
@@ -24,8 +26,27 @@ public class WordBank {
         {"BALL", "A round toy used for kicking, throwing, or catching"}
     };
 
+    private List<String[]> availableWords = new ArrayList<>();
+
+    public WordBank() {
+        resetWords();
+    }
+
+    public void resetWords() {
+        availableWords.clear();
+
+        for (String[] word : words) {
+            availableWords.add(word);
+        }
+
+        Collections.shuffle(availableWords);
+    }
+
     public String[] getRandomWord() {
-        Random random = new Random();
-        return words[random.nextInt(words.length)];
+        if (availableWords.isEmpty()) {
+            resetWords();
+        }
+
+        return availableWords.remove(0);
     }
 }
