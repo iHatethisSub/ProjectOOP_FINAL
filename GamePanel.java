@@ -2,31 +2,40 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 
-// GamePanel = หน้าที่ "เก็บข้อมูลที่จะแสดง" และ "วาดหน้าจอ" เท่านั้น (ไม่มีปุ่ม ไม่ต่อ Server)
+// GamePanel = เก็บข้อมูลที่จะแสดง และวาดหน้าจอเท่านั้น (ไม่มีปุ่ม ไม่ต่อ Server)
 public class GamePanel extends JPanel {
 
-    // หน้าจอที่มีทั้งหมด (ให้ GameFrame เรียกใช้ได้)
+    // หน้าจอที่มีทั้งหมด
     public static final int LOBBY = 0;
     public static final int GAME = 1;
     public static final int RESULT = 2;
 
-    private int screen = LOBBY;      // หน้าจอที่กำลังแสดงอยู่
-    private String playerName = "";  // ชื่อของเรา
+    // สีที่ใช้ทั้งหมด
+    private static final Color GOLD = new Color(243, 185, 74);
+    private static final Color GREEN = new Color(74, 222, 128);
+    private static final Color WHITE = Color.WHITE;
 
-    // ข้อมูลที่ได้รับจาก Server เอาไว้ใช้วาดหน้าจอ
-    private ArrayList<String> players = new ArrayList<String>();      // ชื่อผู้เล่นในห้อง (คนแรก = หัวหน้าห้อง)
-    private ArrayList<String> resultLines = new ArrayList<String>();  // บรรทัดอันดับตอนจบเกม
-    private String round = "";        // รอบที่
-    private String hint = "";         // คำใบ้
-    private int wordLength = 0;       // จำนวนตัวอักษรของคำตอบ
-    private String answerWord = "";   // เฉลย (มีค่าตอนจบรอบ)
-    private String message = "";      // ข้อความสถานะ เช่น ใครตอบถูก
+    // ฟอนต์ที่ใช้ทั้งหมด
+    private static final Font TITLE_FONT = new Font("Tahoma", Font.BOLD, 30);
+    private static final Font TEXT_FONT = new Font("Tahoma", Font.PLAIN, 20);
+
+    private int screen = LOBBY;
+    private String playerName = "";
+
+    // ข้อมูลที่ได้รับจาก Server
+    private ArrayList<String> players = new ArrayList<String>();      // คนแรก = หัวหน้าห้อง
+    private ArrayList<String> resultLines = new ArrayList<String>();
+    private String round = "";
+    private String hint = "";
+    private int wordLength = 0;
+    private String answerWord = "";
+    private String message = "";
 
     public GamePanel() {
-        setOpaque(false); // ให้พื้นหลังใสเพื่อโชว์สีพื้นหลังของ JFrame
+        setOpaque(false);
     }
 
-    // ================= method ให้ GameFrame เรียก เพื่อเปลี่ยนข้อมูล =================
+    // ================= method ให้ GameFrame เรียก =================
 
     public void setPlayerName(String name) {
         playerName = name;
@@ -57,13 +66,10 @@ public class GamePanel extends JPanel {
 
     // เราเป็นหัวหน้าห้องหรือไม่ (คนแรกในรายชื่อ)
     public boolean isHost() {
-        if (players.size() > 0 && players.get(0).equals(playerName)) {
-            return true;
-        }
-        return false;
+        return players.size() > 0 && players.get(0).equals(playerName);
     }
 
-    // เริ่มรอบใหม่ ล้างข้อมูลรอบเก่า แล้วไปหน้า game
+    // เริ่มรอบใหม่ ล้างข้อมูลรอบเก่า แล้วไปหน้า GAME
     public void newRound(String r) {
         round = r;
         hint = "";
@@ -93,7 +99,7 @@ public class GamePanel extends JPanel {
         message = text;
         repaint();
     }
-    
+
     public void addMessage(String text) {
         message = message + text;
         repaint();
@@ -114,10 +120,8 @@ public class GamePanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        int centerX = getWidth() / 2;
 
-        int centerX = getWidth() / 2; // จุดกึ่งกลางหน้าจอ
-
-        // วาดตามหน้าจอที่แสดงอยู่
         if (screen == LOBBY) {
             drawLobby(g, centerX);
         } else if (screen == GAME) {
@@ -127,123 +131,80 @@ public class GamePanel extends JPanel {
         }
     }
 
-    // ---------- หน้า lobby ----------
     private void drawLobby(Graphics g, int centerX) {
-        // 1. หัวข้อ "ห้องรอผู้เล่น" (สีทอง)
-        g.setFont(new Font("Tahoma", Font.BOLD, 30));
-        g.setColor(new Color(243, 185, 74));
-        drawCentered(g, "ห้องรอผู้เล่น", centerX, 160);
+        drawCentered(g, "Waiting Room", centerX, 160, TITLE_FONT, GOLD);
+        drawCentered(g, "Players in room: " + players.size() + " / 8", centerX, 220, TEXT_FONT, WHITE);
+        drawCentered(g, "At least 2 players are needed to start the game", centerX, 255, TEXT_FONT, Color.GRAY);
 
-        // 2. จำนวนผู้เล่น (สีขาว)
-        g.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        g.setColor(Color.WHITE);
-        drawCentered(g, "ผู้เล่นในห้อง " + players.size() + " / 8 คน", centerX, 220);
-
-        // 3. ข้อความเงื่อนไข (สีเทา)
-        g.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        g.setColor(Color.GRAY);
-        drawCentered(g, "ต้องมีผู้เล่นอย่างน้อย 2 คนจึงจะเริ่มเกมได้", centerX, 255);
-
-        // 4. สถานะผู้เล่น (สีเขียว)
-        g.setFont(new Font("Tahoma", Font.PLAIN, 18));
-        g.setColor(new Color(74, 222, 128));
         if (isHost()) {
-            drawCentered(g, "คุณเป็นหัวหน้าห้อง — กดปุ่ม \"เริ่มเกม\" ด้านล่างเมื่อทุกคนพร้อม", centerX, 330);
+            drawCentered(g, "You are the host - press \"Start Game\" when everyone is ready", centerX, 330, TEXT_FONT, GREEN);
         } else {
-            drawCentered(g, "รอหัวหน้าห้องกดเริ่มเกม...", centerX, 330);
+            drawCentered(g, "Waiting for the host to start the game...", centerX, 330, TEXT_FONT, GREEN);
         }
 
-        // 5. รายชื่อผู้เล่นทุกคน (สีขาว)
-        g.setFont(new Font("Tahoma", Font.PLAIN, 18));
-        g.setColor(Color.WHITE);
+        // รายชื่อผู้เล่น (บรรทัดละ 30 พิกเซล)
         for (int i = 0; i < players.size(); i++) {
             String line = (i + 1) + ". " + players.get(i);
             if (i == 0) {
-                line = line + " (หัวหน้าห้อง)";
+                line = line + " (Host)";
             }
             if (players.get(i).equals(playerName)) {
-                line = line + " (คุณ)";
+                line = line + " (You)";
             }
-            drawCentered(g, line, centerX, 390 + i * 30);
+            drawCentered(g, line, centerX, 390 + i * 30, TEXT_FONT, WHITE);
         }
     }
 
-    // ---------- หน้า game ----------
     private void drawGame(Graphics g, int centerX) {
-        // รอบที่ (สีเทา)
-        g.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        g.setColor(Color.GRAY);
-        drawCentered(g, "รอบที่ " + round, centerX, 100);
+        drawCentered(g, "Round " + round, centerX, 100, TEXT_FONT, Color.GRAY);
+        drawCentered(g, "Players in room: " + players.size(), centerX, 135, TEXT_FONT, GREEN);
+        drawCentered(g, "Hint: " + hint, centerX, 240, TITLE_FONT, GOLD);
 
-        // จำนวนคนปัจจุบัน (สีเขียว)
-        g.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        g.setColor(new Color(74, 222, 128));
-        drawCentered(g, "ผู้เล่นในห้อง: " + players.size() + " คน", centerX, 135);
-
-        // คำใบ้ (สีทอง)
-        g.setFont(new Font("Tahoma", Font.BOLD, 28));
-        g.setColor(new Color(243, 185, 74));
-        drawCentered(g, "คำใบ้: " + hint, centerX, 240);
-
-        // ช่องอักษร: วาดกรอบ 1 ช่องต่อ 1 ตัวอักษร
+        // ช่องตัวอักษร: 1 ช่องต่อ 1 ตัว (ช่องละ 60 พิกเซล เว้น 10)
         int boxSize = 60;
         int gap = 10;
-        int totalWidth = wordLength * boxSize + (wordLength - 1) * gap;
+        int totalWidth = wordLength * (boxSize + gap) - gap;
         int startX = centerX - totalWidth / 2;
 
         for (int i = 0; i < wordLength; i++) {
             int x = startX + i * (boxSize + gap);
+            g.setColor(GOLD);
+            g.drawRect(x, 300, boxSize, boxSize);
 
-            g.setColor(new Color(243, 185, 74));
-            g.drawRoundRect(x, 300, boxSize, boxSize, 10, 10);
-
-            // ถ้ามีเฉลยแล้ว (จบรอบ) ให้เขียนตัวอักษรลงในช่อง
+            // ถ้ามีเฉลยแล้ว ให้เขียนตัวอักษรลงในช่อง
             if (i < answerWord.length()) {
-                g.setFont(new Font("Tahoma", Font.BOLD, 30));
-                g.setColor(Color.WHITE);
                 String letter = answerWord.substring(i, i + 1);
-                FontMetrics metrics = g.getFontMetrics();
-                int letterX = x + (boxSize - metrics.stringWidth(letter)) / 2;
-                g.drawString(letter, letterX, 345);
+                drawCentered(g, letter, x + boxSize / 2, 345, TITLE_FONT, WHITE);
             }
         }
 
-        // ข้อความสถานะ เช่น ใครตอบถูก / ตอบผิด (สีเขียว)
-        g.setFont(new Font("Tahoma", Font.PLAIN, 22));
-        g.setColor(new Color(74, 222, 128));
-        drawCentered(g, message, centerX, 450);
+        drawCentered(g, message, centerX, 450, TEXT_FONT, GREEN);
     }
 
-    // ---------- หน้า result ----------
     private void drawResult(Graphics g, int centerX) {
-        g.setFont(new Font("Tahoma", Font.BOLD, 30));
-        g.setColor(new Color(243, 185, 74));
-        drawCentered(g, "Game Results", centerX, 120);
+        drawCentered(g, "Game Results", centerX, 120, TITLE_FONT, GOLD);
 
         // อันดับ 1 สีทอง ที่เหลือสีขาว
-        g.setFont(new Font("Tahoma", Font.PLAIN, 24));
         for (int i = 0; i < resultLines.size(); i++) {
+            Color color = WHITE;
             if (i == 0) {
-                g.setColor(new Color(243, 185, 74));
-            } else {
-                g.setColor(Color.WHITE);
+                color = GOLD;
             }
-            drawCentered(g, resultLines.get(i), centerX, 200 + i * 45);
+            drawCentered(g, resultLines.get(i), centerX, 200 + i * 45, TEXT_FONT, color);
         }
 
-        g.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        g.setColor(Color.GRAY);
         if (isHost()) {
-            drawCentered(g, "กดปุ่ม \"เล่นอีกครั้ง\" เพื่อเริ่มเกมใหม่", centerX, 600);
+            drawCentered(g, "Press \"Play Again\" to start a new game", centerX, 600, TEXT_FONT, Color.GRAY);
         } else {
-            drawCentered(g, "รอหัวหน้าห้องเริ่มเกมใหม่...", centerX, 600);
+            drawCentered(g, "Waiting for the host to start a new game...", centerX, 600, TEXT_FONT, Color.GRAY);
         }
     }
 
-    private void drawCentered(Graphics g, String text, int centerX, int y) {
-        FontMetrics metrics = g.getFontMetrics();
-        int textWidth = metrics.stringWidth(text);
-        int x = centerX - (textWidth / 2);
-        g.drawString(text, x, y);
-    }
+    // วาดข้อความให้อยู่กึ่งกลางที่ centerX (ตั้งฟอนต์และสีให้ในตัว)
+    private void drawCentered(Graphics g, String text, int centerX, int y, Font font, Color color) {
+    g.setFont(font);
+    g.setColor(color);
+    int textWidth = g.getFontMetrics().stringWidth(text);
+    g.drawString(text, centerX - textWidth / 2, y);
+}
 }

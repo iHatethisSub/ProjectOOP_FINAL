@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.Socket;
-import javax.swing.SwingUtilities;   // เพิ่มใหม่: ใช้ส่งงานไปอัปเดตหน้าจอ
 
 public class GameClient {
 
@@ -16,7 +15,8 @@ public class GameClient {
         this.frame = frame;
     }
 
-    // แก้ไข: รับ ip กับ port จากหน้า login (เดิมกำหนด localhost:5000 ตายตัว) และคืน true/false ว่าต่อได้ไหม
+    // แก้ไข: รับ ip กับ port จากหน้า login (เดิมกำหนด localhost:
+    //  ตายตัว) และคืน true/false ว่าต่อได้ไหม
     public boolean connect(String ip, int port) {
         try {
             socket = new Socket(ip, port);
@@ -40,15 +40,13 @@ public class GameClient {
             String message;
 
             while ((message = in.readLine()) != null) {
-                final String[] data = message.split("#", 2);
-
-                // เพิ่มใหม่: Thread นี้ห้ามแก้หน้าจอตรง ๆ ต้องฝากให้ Thread ของหน้าจอ (invokeLater) ทำแทน
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        handleMessage(data);
-                    }
-                });
+                String[] data = message.split("#", 2); //JOIN#Player1    = data[0] = join , data[1] = player1
+                                                       // ใส่เลขสองเพราะป้องกันไม่ให้ split เกินสองส่วนเพราะ data เป็น array ที่เก็บข้อมูลสองส่วน
+                try {
+                    handleMessage(data);
+                } catch (Exception e) {
+                    System.out.println("Error handling message: " + e);
+                }
             }
 
         } catch (IOException e) {
@@ -60,7 +58,7 @@ public class GameClient {
     private void handleMessage(String[] data) {
         String value = "";
         if (data.length > 1) {
-            value = data[1];
+            value = data[1];//เช็คว่ามีข้อมูลอยู่หลัง # หรือไม่ ถ้ามีให้เก็บไว้ในตัวแปร value เพื่อส่งเช็คต่อ
         }
 
         switch (data[0]) {
@@ -73,7 +71,7 @@ public class GameClient {
                 break;
 
             case "ROUND":
-                frame.setRound(value);
+                frame.setRound(value); // อัปเดตรอบที่กำลังเล่น
                 break;
 
             case "HINT":
@@ -81,7 +79,7 @@ public class GameClient {
                 break;
 
             case "LENGTH":
-                frame.setWordLength(value);
+                frame.setWordLength(value);// อัปเดตช่องตามจำนวนตัวอักษร
                 break;
 
             case "WRONG":
@@ -89,23 +87,23 @@ public class GameClient {
                 break;
 
             case "CORRECT":
-                frame.showCorrect(value);
+                frame.showCorrect(value);//ส่งข้อความว่าใครตอบถูก
                 break;
 
             case "ANSWER":
-                frame.showAnswer(value);
+                frame.showAnswer(value);//สั่งให้เฉลยคำตอบ
                 break;
 
             case "SCORE":
-                frame.showScore(value);
+                frame.showScore(value);//สั่งให้อัพเดทคะแนนของผู้เล่น
                 break;
 
             case "GAMEOVER":
-                frame.gameOver();
+                frame.gameOver();//แสดงหน้าจอจบเกม
                 break;
 
             case "RESULT":
-                frame.addResult(value);
+                frame.addResult(value);//สรุปคะแนนอันดับ
                 break;
 
             case "ERROR":
@@ -115,7 +113,8 @@ public class GameClient {
     }
 
     public void startReceiving() {
-        Thread thread = new Thread(new Runnable() {
+        Thread thread = new Thread(new Runnable() {//สร้าง thread ใหม่เพื่อรันแยกจากหน้าจอหลัก ที่ต้องแยกเพราะ
+                                                   //receiveMessage() มีการวนลูป while เพื่อรอฟังข้อมูลอยู่ตลอดเวลา ถ้าไม่แยก Thread หน้าจอโปรแกรมจะ ค้างและกดอะไรไม่ได้เลย
             @Override
             public void run() {
                 receiveMessage();
@@ -126,20 +125,20 @@ public class GameClient {
     }
 
 
-    public void sendMessage(String message) {
-        if (out != null) {
-            out.println(message);
+    public void sendMessage(String message) { //ส่งข้อความไปหา server โดย
+        if (out != null) {//เช็คว่ามี printwriter พร้อมส่งหรือไม่
+            out.println(message); //ถ้ามีให้ส่งข้อความไป
         }
     }
 
 
     public void disconnect() {
         try {
-            if (socket != null) {
-                socket.close();
+            if (socket != null) {//ถ้า socket ไม่เป็น null แสดงว่ามีการเชื่อมต่ออยู่
+                socket.close();//ปิด socket
             }
         } catch (IOException e) {
-            System.out.println("Error closing connection: " + e.getMessage());
+            System.out.println("Error closing connection: " + e.getMessage());//ถ้าเกิด error ตอนปิดให้แสดงข้อความ + getMessage() เพื่อดูว่าเกิด error อะไร
         }
     }
 

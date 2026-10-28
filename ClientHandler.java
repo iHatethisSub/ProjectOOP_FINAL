@@ -65,8 +65,7 @@ public class ClientHandler implements Runnable {
         } catch (IOException ignored) {}
     }
 
-    public String getPlayerName() { return playerName; }
-    public void setPlayerName(String name) { this.playerName = name; }
+    
 
     // เพิ่มใหม่: GameRoom เรียก client.setPlayer(...) แต่เดิมไม่มี method นี้
     public void setPlayer(Player player) {
